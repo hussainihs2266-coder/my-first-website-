@@ -1,1 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Attendance App</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f2f7ff;
+      padding: 20px;
+    }
 
+    h1 {
+      text-align: center;
+      color: #2b4eff;
+    }
+
+    .student {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .present {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .absent {
+      background: #f44336;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📋 Student Attendance</h1>
+
+  <div class="student">
+    <span>👦 Ali</span>
+    <div>
+      <button class="present" onclick="mark(this, 'Present')">Present</button>
+      <button class="absent" onclick="mark(this, 'Absent')">Absent</button>
+    </div>
+  </div>
+
+  <div class="student">
+    <span>👧 Zainab</span>
+    <div>
+      <button class="present" onclick="mark(this, 'Present')">Present</button>
+      <button class="absent" onclick="mark(this, 'Absent')">Absent</button>
+    </div>
+  </div>
+
+  <script>
+    function mark(btn, status) {
+      alert("Marked as " + status);
+    }
+  </script>
+
+</body>
+</html>
