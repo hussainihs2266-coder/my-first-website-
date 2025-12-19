@@ -41,29 +41,21 @@
       background: #f44336;
       color: white;
     }
-  </style>
-</head>
-<body>
+ <script>
+  function mark(btn, status) {
+    let studentBox = btn.closest(".student");
+    let name = studentBox.querySelector("span");
 
-  <h1>📋 Student Attendance</h1>
+    if (status === "Present") {
+      name.innerHTML = name.innerText.split(" ")[0] + " ✅ Present";
+      name.style.color = "green";
+    } else {
+      name.innerHTML = name.innerText.split(" ")[0] + " ❌ Absent";
+      name.style.color = "red";
+    }
+  }
+</script>
 
-  <div class="student">
-    <span>👦 Ali</span>
-    <div>
-      <button class="present" onclick="mark(this, 'Present')">Present</button>
-      <button class="absent" onclick="mark(this, 'Absent')">Absent</button>
-    </div>
-  </div>
-
-  <div class="student">
-    <span>👧 Zainab</span>
-    <div>
-      <button class="present" onclick="mark(this, 'Present')">Present</button>
-      <button class="absent" onclick="mark(this, 'Absent')">Absent</button>
-    </div>
-  </div>
-
-  <script>
     function mark(btn, status) {
       alert("Marked as " + status);
     }
