@@ -1,65 +1,266 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>My Attendance App</title>
-  <style>
-    body {
-      font-family: Arial;
-      background: #f2f7ff;
-      padding: 20px;
-    }
+<meta charset="UTF-8">
+<title>Attendance App</title>
 
-    h1 {
-      text-align: center;
-      color: #2b4eff;
-    }
+<style>
+body {
+  font-family: Arial;
+  background: #eef2ff;
+  padding: 20px;
+}
 
-    .student {
-      background: white;
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+h1,h2 {
+  text-align: center;
+  color: #2b4eff;
+}
 
-    button {
-      padding: 8px 12px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-    }
+button {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #2b4eff;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
 
-    .present {
-      background: #4CAF50;
-      color: white;
-    }
+.small { width:auto; padding:6px 10px; }
 
-    .absent {
-      background: #f44336;
-      color: white;
-    }
- <script>
-  function mark(btn, status) {
-    let studentBox = btn.closest(".student");
-    let name = studentBox.querySelector("span");
+.box, .card, .student {
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
 
-    if (status === "Present") {
-      name.innerHTML = name.innerText.split(" ")[0] + " ✅ Present";
-      name.style.color = "green";
-    } else {
-      name.innerHTML = name.innerText.split(" ")[0] + " ❌ Absent";
-      name.style.color = "red";
-    }
+.dashboard {
+  display: flex;
+  gap: 10px;
+}
+
+.card {
+  flex: 1;
+  text-align: center;
+}
+
+.student {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.present { background:#4CAF50; }
+.absent { background:#f44336; }
+.delete { background:#9e9e9e; }
+
+input {
+  width:100%;
+  padding:10px;
+  margin-bottom:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage" class="box">
+  <h2>🔐 Teacher Login</h2>
+  <input id="user" placeholder="Username">
+  <input id="pass" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <p id="err" style="color:red;text-align:center;"></p>
+</div>
+
+<!-- APP -->
+<div id="appPage" style="display:none">
+
+<h1>📋 Attendance App</h1>
+
+<!-- CLASS & SUBJECT -->
+<div class="box">
+  <input id="className" placeholder="Class Name (e.g. JSS 2A)">
+  <input id="subjectName" placeholder="Subject (e.g. Computer Studies)">
+  <button onclick="saveClass()">💾 Save Class Info</button>
+</div>
+
+<!-- DISPLAY CLASS INFO -->
+<div class="card">
+  <h3 id="displayClass">Class: -</h3>
+  <h3 id="displaySubject">Subject: -</h3>
+</div>
+
+<button onclick="logout()">🚪 Logout</button>
+<button onclick="showSummary()">📅 Monthly Summary</button>
+
+<div class="dashboard">
+  <div class="card">
+    <h3>Students</h3>
+    <p id="totalStudents">0</p>
+  </div>
+  <div class="card">
+    <h3>Present Today</h3>
+    <p id="totalPresent">0</p>
+  </div>
+  <div class="card">
+    <h3>Absent Today</h3>
+    <p id="totalAbsent">0</p>
+  </div>
+</div>
+
+<input id="newStudent" placeholder="Student name">
+<button onclick="addStudent()">➕ Add Student</button>
+
+<div id="students"></div>
+</div>
+
+<!-- MONTHLY SUMMARY -->
+<div id="summaryPage" style="display:none">
+  <h2>📅 Monthly Attendance Summary</h2>
+  <button onclick="back()">⬅ Back</button>
+  <div id="summary"></div>
+</div>
+
+<script>
+/* ---------- LOGIN ---------- */
+if (localStorage.getItem("login") === "yes") showApp();
+
+function login() {
+  if (user.value === "teacher" && pass.value === "1234") {
+    localStorage.setItem("login","yes");
+    showApp();
+  } else {
+    err.innerText = "Wrong login";
   }
-</script>
+}
 
-    function mark(btn, status) {
-      alert("Marked as " + status);
+function logout() {
+  localStorage.removeItem("login");
+  location.reload();
+}
+
+function showApp() {
+  loginPage.style.display="none";
+  appPage.style.display="block";
+  loadClass();
+}
+
+/* ---------- CLASS & SUBJECT ---------- */
+function saveClass(){
+  localStorage.setItem("className", className.value);
+  localStorage.setItem("subjectName", subjectName.value);
+  loadClass();
+}
+
+function loadClass(){
+  let c = localStorage.getItem("className") || "-";
+  let s = localStorage.getItem("subjectName") || "-";
+  displayClass.innerText = "Class: " + c;
+  displaySubject.innerText = "Subject: " + s;
+}
+
+/* ---------- DATE ---------- */
+let today = new Date().toISOString().slice(0,10);
+let month = today.slice(0,7);
+
+/* ---------- STUDENTS ---------- */
+let students = JSON.parse(localStorage.getItem("students")) || ["Ali","Zainab"];
+let box = document.getElementById("students");
+
+function draw() {
+  box.innerHTML="";
+  let p=0,a=0;
+
+  students.forEach(name=>{
+    let key = name+"_"+today;
+    let status = localStorage.getItem(key) || "";
+
+    if (status==="Present") p++;
+    if (status==="Absent") a++;
+
+    let div=document.createElement("div");
+    div.className="student";
+    div.innerHTML=`
+      <span>${name}</span>
+      <span>${status}</span>
+      <div>
+        <button class="small present" onclick="mark('${name}','Present')">P</button>
+        <button class="small absent" onclick="mark('${name}','Absent')">A</button>
+        <button class="small delete" onclick="del('${name}')">🗑️</button>
+      </div>
+    `;
+    box.appendChild(div);
+  });
+
+  totalStudents.innerText=students.length;
+  totalPresent.innerText=p;
+  totalAbsent.innerText=a;
+}
+
+function mark(name,status){
+  localStorage.setItem(name+"_"+today,status);
+  draw();
+}
+
+function addStudent(){
+  let n=newStudent.value.trim();
+  if(n===""||students.includes(n))return;
+  students.push(n);
+  localStorage.setItem("students",JSON.stringify(students));
+  newStudent.value="";
+  draw();
+}
+
+function del(n){
+  if(!confirm("Delete "+n+"?"))return;
+  students=students.filter(x=>x!==n);
+  localStorage.setItem("students",JSON.stringify(students));
+  draw();
+}
+
+/* ---------- MONTHLY SUMMARY ---------- */
+function showSummary(){
+  appPage.style.display="none";
+  summaryPage.style.display="block";
+  summary.innerHTML="";
+
+  students.forEach(name=>{
+    let present=0,absent=0;
+
+    for(let i=0;i<localStorage.length;i++){
+      let k=localStorage.key(i);
+      if(k.startsWith(name+"_"+month)){
+        let v=localStorage.getItem(k);
+        if(v==="Present")present++;
+        if(v==="Absent")absent++;
+      }
     }
-  </script>
+
+    let div=document.createElement("div");
+    div.className="card";
+    div.innerHTML=`
+      <h3>${name}</h3>
+      ✅ Present: ${present}<br>
+      ❌ Absent: ${absent}
+    `;
+    summary.appendChild(div);
+  });
+}
+
+function back(){
+  summaryPage.style.display="none";
+  appPage.style.display="block";
+  draw();
+}
+
+draw();
+</script>
 
 </body>
 </html>
